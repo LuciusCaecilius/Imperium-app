@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 10%; /* #1A1A1A */
+    --foreground: 0 0% 98%; /* almost white */
+
+    --card: 0 0% 12%; /* Slightly lighter charcoal */
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 45 68% 52%; /* #D4AF37 */
+    --primary-foreground: 0 0% 10%; /* Text on primary */
+
+    --secondary: 32 24% 44%; /* #8B7355, muted bronze */
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 32 24% 44%; /* #8B7355, muted bronze */
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 45 68% 52% / 0.2; /* Subtle gold border */
+    --input: 0 0% 14%;
+    --ring: 45 68% 52%; /* Gold focus ring */
+
+    --radius: 0.75rem;
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+     background-image: radial-gradient(circle at 25% 25%, hsl(var(--primary) / 0.05), rgba(255, 255, 255, 0) 25%), radial-gradient(circle at 75% 75%, hsl(var(--secondary) / 0.05), rgba(255, 255, 255, 0) 25%);
+  }
+}
+
+@layer utilities {
+  .pulse-bg-primary {
+    animation: pulse-bg-primary 2s infinite;
+  }
+  @keyframes pulse-bg-primary {
+    0%, 100% {
+      background-color: hsl(var(--primary) / 1);
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0.7);
+    }
+    50% {
+      background-color: hsl(var(--primary) / 0.8);
+      box-shadow: 0 0 20px 5px hsl(var(--primary) / 0.1);
+    }
+  }
+
+  /* Hide arrows from number inputs */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+}
