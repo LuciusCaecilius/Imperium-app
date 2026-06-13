@@ -13,12 +13,12 @@ export const metadata: Metadata = {
   description: 'The future of gold-backed DeFi.',
   icons: {
     icon: [
-      { url: '/logo.svg', sizes: '16x16', type: 'image/svg+xml' },
-      { url: '/logo.svg', sizes: '32x32', type: 'image/svg+xml' },
-      { url: '/logo_large.svg', sizes: '48x48', type: 'image/svg+xml' },
+      { url: '/icon.svg', sizes: '16x16', type: 'image/svg+xml' },
+      { url: '/icon.svg', sizes: '32x32', type: 'image/svg+xml' },
+      { url: '/icon.svg', sizes: '48x48', type: 'image/svg+xml' },
     ],
     apple: [
-      { url: '/logo_large.svg', sizes: '180x180', type: 'image/svg+xml' },
+      { url: '/icon.svg', sizes: '180x180', type: 'image/svg+xml' },
     ]
   },
 };
