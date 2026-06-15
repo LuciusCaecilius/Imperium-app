@@ -47,8 +47,8 @@ export const VAULTS: Vault[] = [
   {
     id: '3',
     name: 'XAU.c',
-    icon: 'Landmark',
-    iconHint: 'financial institution landmark',
+    icon: 'Banknote',
+    iconHint: 'private credit banknote',
     shortDescription: 'Private credit backed yield.',
     description: "This vault specializes in private credit opportunities. Using XAUT as collateral, the vault provides capital to curated private credit instruments, generating superior yields compared to traditional markets. Profits are continuously auto-compounded into XAU.c.",
     apy: 6.0,
