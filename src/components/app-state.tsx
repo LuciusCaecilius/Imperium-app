@@ -84,6 +84,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         try {
             const promises = VAULTS.map(async (vault) => {
                 try {
+                    // Check if address is a placeholder (all zeros) - if so, use fallback data
+                    if (vault.address === '0x0000000000000000000000000000000000000000' || 
+                        vault.address === '0x0000000000000000000000000000000000000001' ||
+                        vault.address === '0x0000000000000000000000000000000000000002') {
+                        return { vaultId: vault.id, data: { apy: vault.apy, tvl: 0, exchangeRate: vault.exchangeRate } };
+                    }
+
                     const vaultContract = new ethers.Contract(vault.address, STABLE_VAULT_ABI, publicProvider);
                     // Fetch total assets and current exchange rate (assets per 1 share)
                     const [totalAssetsBigInt, exchangeRateBigInt] = await Promise.all([
