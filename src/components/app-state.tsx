@@ -94,12 +94,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                     const tvl = parseFloat(formatUnits(totalAssetsBigInt, 18));
                     const exchangeRate = parseFloat(formatUnits(exchangeRateBigInt, 18));
                     
-                    // Validate that values are reasonable numbers
-                    if (!isFinite(tvl) || !isFinite(exchangeRate) || tvl < 0 || exchangeRate < 0) {
-                        console.warn(`Invalid data for vault ${vault.id}: tvl=${tvl}, exchangeRate=${exchangeRate}`);
-                        return { vaultId: vault.id, data: { apy: vault.apy, tvl: 0, exchangeRate: vault.exchangeRate } };
-                    }
-                    
                     // APY Calculation Mechanism:
                     // We calculate annualized growth from the initial launch price.
                     // If the price hasn't moved (1:1) or shows a temporary dip (common due to entry fees),
