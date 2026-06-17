@@ -13,7 +13,7 @@ export const VAULTS: Vault[] = [
     tvl: 0, 
     address: '0x0963b1174A14D5C5A72257406D803C5B470CC00F',
     receiptTokenSymbol: 'XAU.s',
-    exchangeRate: 1.0150,
+    exchangeRate: 1.015,
     performance: [
       { date: '2024-05-01', price: 1.0000 },
       { date: '2024-05-08', price: 1.0025 },
@@ -34,7 +34,7 @@ export const VAULTS: Vault[] = [
     tvl: 0,
     address: '0x0000000000000000000000000000000000000001',
     receiptTokenSymbol: 'XAU.r',
-    exchangeRate: 1.0200,
+    exchangeRate: 1.020,
     performance: [
       { date: '2024-05-01', price: 1.0000 },
       { date: '2024-05-08', price: 1.0035 },
@@ -55,7 +55,7 @@ export const VAULTS: Vault[] = [
     tvl: 0,
     address: '0x0000000000000000000000000000000000000002',
     receiptTokenSymbol: 'XAU.c',
-    exchangeRate: 1.0250,
+    exchangeRate: 1.025,
     performance: [
       { date: '2024-05-01', price: 1.0000 },
       { date: '2024-05-08', price: 1.0044 },
