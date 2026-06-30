@@ -6,6 +6,7 @@ import { VAULTS } from '@/lib/constants';
 import { BrowserProvider, ethers, formatUnits, parseUnits, WebSocketProvider, TransactionReceipt } from 'ethers';
 import { XAUT_CONTRACT_ADDRESS, XAUT_ABI } from '@/lib/contracts';
 import { STABLE_VAULT_ABI } from '@/lib/contracts/stable-vault';
+import { Vault } from '@lagoon-protocol/v0-viem';
 
 declare global {
   interface Window {
@@ -93,6 +94,32 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                             ? vault.performance[vault.performance.length - 1].price 
                             : 1.0;
                         return { vaultId: vault.id, data: { apy: vault.apy, tvl: 0, exchangeRate: latestPrice } };
+                    }
+
+                    // Use Lagoon SDK for XAU.s vault (id: '1') for real-time data
+                    if (vault.id === '1') {
+                        try {
+                            const lagoonVault = await Vault.fetch({
+                                address: vault.address,
+                                chainId: 1, // Ethereum mainnet
+                            });
+                            
+                            const tvl = parseFloat(formatUnits(lagoonVault.totalAssets, 18));
+                            const exchangeRate = parseFloat(formatUnits(lagoonVault.convertToAssets(BigInt('1000000000000000000')), 18));
+                            const apr = lagoonVault.apr || vault.apy;
+                            
+                            return { 
+                                vaultId: vault.id, 
+                                data: { 
+                                    apy: apr, 
+                                    tvl, 
+                                    exchangeRate 
+                                } 
+                            };
+                        } catch (lagoonError) {
+                            console.error(`Lagoon SDK fetch failed for vault ${vault.id}, falling back to ethers:`, lagoonError);
+                            // Fall through to ethers.js fallback
+                        }
                     }
 
                     const vaultContract = new ethers.Contract(vault.address, STABLE_VAULT_ABI, publicProvider);
