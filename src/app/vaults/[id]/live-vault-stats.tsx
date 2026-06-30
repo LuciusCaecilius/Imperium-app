@@ -26,10 +26,22 @@ export default function LiveVaultStats({
     const isUserDepositLoading = isConnected && isBalancesLoading;
 
     // Ensure APY and TVL are valid numbers, fallback to vault data if corrupted
-    const displayApy = (vaultLiveData?.apy !== undefined && vaultLiveData.apy !== null && !isNaN(vaultLiveData.apy) && vaultLiveData.apy < 1000) 
+    const displayApy = (
+        vaultLiveData?.apy !== undefined && 
+        vaultLiveData.apy !== null && 
+        !isNaN(vaultLiveData.apy) && 
+        vaultLiveData.apy >= 0 && 
+        vaultLiveData.apy <= 1000
+    ) 
         ? vaultLiveData.apy 
         : vault.apy;
-    const displayTvl = (vaultLiveData?.tvl !== undefined && vaultLiveData.tvl !== null && !isNaN(vaultLiveData.tvl) && vaultLiveData.tvl < 1e18) 
+    const displayTvl = (
+        vaultLiveData?.tvl !== undefined && 
+        vaultLiveData.tvl !== null && 
+        !isNaN(vaultLiveData.tvl) && 
+        vaultLiveData.tvl >= 0 &&
+        vaultLiveData.tvl < 1e18
+    ) 
         ? vaultLiveData.tvl 
         : 0;
 

@@ -26,7 +26,10 @@ export default function VaultCard({ vault, index, liveApy, isLoading }: VaultCar
     router.prefetch(`/vaults/${vault.id}`);
   };
   
-  const displayApy = (liveApy !== undefined && liveApy !== null && !isNaN(liveApy) && liveApy < 1000) ? liveApy : vault.apy;
+  // Validate APY: must be a valid number between 0 and 1000
+  const displayApy = (liveApy !== undefined && liveApy !== null && !isNaN(liveApy) && liveApy >= 0 && liveApy <= 1000) 
+    ? liveApy 
+    : vault.apy;
   
   const isUrl = typeof vault.icon === 'string' && (vault.icon.includes('/') || vault.icon.includes('.'));
   const LucideIcon = !isUrl && typeof vault.icon === 'string' ? (icons[vault.icon as keyof typeof icons] || HelpCircle) : null;
