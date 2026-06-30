@@ -95,7 +95,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                         return { vaultId: vault.id, data: { apy: vault.apy, tvl: 0, exchangeRate: latestPrice } };
                     }
 
-
+                    // For XAU.s (id: '1'), fetch real-time data from Lagoon API
+                    if (vault.id === '1') {
+                        try {
+                            const response = await fetch(`/api/lagoon/vault/${vault.address.slice(2)}`);
+                            if (response.ok) {
+                                const lagoonData = await response.json();
+                                console.log('[v0] XAU.s Lagoon data fetched:', { tvl: lagoonData.tvl, sharePrice: lagoonData.sharePrice });
+                                return {
+                                    vaultId: vault.id,
+                                    data: {
+                                        apy: vault.apy, // Keep configured APY
+                                        tvl: lagoonData.tvl,
+                                        exchangeRate: lagoonData.sharePrice
+                                    }
+                                };
+                            }
+                        } catch (lagoonError) {
+                            console.error('[v0] Lagoon API fetch failed:', lagoonError);
+                        }
+                    }
 
                     const vaultContract = new ethers.Contract(vault.address, STABLE_VAULT_ABI, publicProvider);
                     // Fetch total assets and current exchange rate (assets per 1 share)
