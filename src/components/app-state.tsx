@@ -6,7 +6,6 @@ import { VAULTS } from '@/lib/constants';
 import { BrowserProvider, ethers, formatUnits, parseUnits, WebSocketProvider, TransactionReceipt } from 'ethers';
 import { XAUT_CONTRACT_ADDRESS, XAUT_ABI } from '@/lib/contracts';
 import { STABLE_VAULT_ABI } from '@/lib/contracts/stable-vault';
-import { fetchXAUsVaultMetrics } from '@/lib/lagoon-direct';
 
 declare global {
   interface Window {
@@ -89,78 +88,64 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                     if (vault.address === '0x0000000000000000000000000000000000000000' || 
                         vault.address === '0x0000000000000000000000000000000000000001' ||
                         vault.address === '0x0000000000000000000000000000000000000002') {
-                        // Get latest performance price or default exchange rate
+                        // Calculate exchange rate from the latest performance price
                         const latestPrice = vault.performance && vault.performance.length > 0 
                             ? vault.performance[vault.performance.length - 1].price 
-                            : vault.exchangeRate;
-                        return { 
-                            vaultId: vault.id, 
-                            data: { 
-                                apy: vault.apy, 
-                                tvl: 0, 
-                                exchangeRate: latestPrice 
-                            } 
-                        };
+                            : 1.0;
+                        return { vaultId: vault.id, data: { apy: vault.apy, tvl: 0, exchangeRate: latestPrice } };
                     }
 
-                    // For XAU.s (vault id === '1'), fetch real-time metrics from blockchain
-                    if (vault.id === '1') {
-                        try {
-                            const metrics = await fetchXAUsVaultMetrics(vault.address);
-                            if (metrics) {
-                                console.log(`[v0] XAU.s real-time metrics:`, {
-                                    tvl: metrics.tvl,
-                                    sharePrice: metrics.sharePrice,
-                                    apr: metrics.apr,
-                                });
-                                
-                                return {
-                                    vaultId: vault.id,
-                                    data: {
-                                        apy: metrics.apr, // Use real APR from Lagoon
-                                        tvl: metrics.tvl,
-                                        exchangeRate: metrics.sharePrice
-                                    }
-                                };
-                            }
-                        } catch (xausError) {
-                            console.error('[v0] Failed to fetch XAU.s metrics:', xausError);
-                        }
-                    }
-
-                    // Fallback to configured vault data
-                    const latestPrice = vault.performance && vault.performance.length > 0 
-                        ? vault.performance[vault.performance.length - 1].price 
-                        : vault.exchangeRate;
+                    const vaultContract = new ethers.Contract(vault.address, STABLE_VAULT_ABI, publicProvider);
+                    // Fetch total assets and current exchange rate (assets per 1 share)
+                    const [totalAssetsBigInt, exchangeRateBigInt] = await Promise.all([
+                        vaultContract.totalAssets(),
+                        vaultContract.convertToAssets(parseUnits('1', 18))
+                    ]);
                     
-                    console.log(`[v0] Vault ${vault.id} (${vault.name}) using configured data:`, {
-                        apy: vault.apy,
-                        tvl: 0,
-                        exchangeRate: latestPrice,
-                    });
+                    const tvl = parseFloat(formatUnits(totalAssetsBigInt, 18));
+                    const exchangeRate = parseFloat(formatUnits(exchangeRateBigInt, 18));
+                    
+                    // APY Calculation Mechanism:
+                    // We calculate annualized growth from the initial launch price.
+                    // If the price hasn't moved (1:1) or shows a temporary dip (common due to entry fees),
+                    // we fallback to the strategy's target APY from constants to provide a more accurate
+                    // representation of expected yield.
+                    const inceptionDate = vault.performance && vault.performance.length > 0 
+                        ? new Date(vault.performance[0].date) 
+                        : new Date('2024-05-01');
+                    
+                    const now = new Date();
+                    const diffTime = Math.abs(now.getTime() - inceptionDate.getTime());
+                    const daysElapsed = Math.max(1, diffTime / (1000 * 60 * 60 * 24));
+                    const yearsElapsed = daysElapsed / 365;
+                    
+                    const initialPrice = vault.performance && vault.performance.length > 0 
+                        ? vault.performance[0].price 
+                        : 1.0;
+
+                    const growth = (exchangeRate / initialPrice) - 1;
+                    
+                    // Only use the live calculation if growth is positive and meaningful (>0.01%)
+                    // Otherwise, fallback to the target APY defined for the strategy.
+                    const calculatedApy = growth > 0.0001 
+                        ? (growth / yearsElapsed) * 100 
+                        : vault.apy;
                     
                     return { 
                         vaultId: vault.id, 
                         data: { 
-                            apy: vault.apy,
-                            tvl: 0, 
-                            exchangeRate: latestPrice 
+                            apy: calculatedApy, 
+                            tvl, 
+                            exchangeRate 
                         } 
                     };
                 } catch (e) {
-                    console.error(`[v0] Failed to fetch live data for vault ${vault.id}:`, e);
-                    // Use configured fallback data
+                    console.error(`Failed to fetch live data for vault ${vault.id}:`, e);
+                    // Use the latest performance price as exchange rate
                     const latestPrice = vault.performance && vault.performance.length > 0 
                         ? vault.performance[vault.performance.length - 1].price 
-                        : vault.exchangeRate;
-                    return { 
-                        vaultId: vault.id, 
-                        data: { 
-                            apy: vault.apy, 
-                            tvl: 0, 
-                            exchangeRate: latestPrice 
-                        } 
-                    };
+                        : 1.0;
+                    return { vaultId: vault.id, data: { apy: vault.apy, tvl: 0, exchangeRate: latestPrice } };
                 }
             });
 
