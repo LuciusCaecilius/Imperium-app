@@ -6,7 +6,6 @@ import { VAULTS } from '@/lib/constants';
 import { BrowserProvider, ethers, formatUnits, parseUnits, WebSocketProvider, TransactionReceipt } from 'ethers';
 import { XAUT_CONTRACT_ADDRESS, XAUT_ABI } from '@/lib/contracts';
 import { STABLE_VAULT_ABI } from '@/lib/contracts/stable-vault';
-import { Vault } from '@lagoon-protocol/v0-viem';
 
 declare global {
   interface Window {
@@ -96,31 +95,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                         return { vaultId: vault.id, data: { apy: vault.apy, tvl: 0, exchangeRate: latestPrice } };
                     }
 
-                    // Use Lagoon SDK for XAU.s vault (id: '1') for real-time data
-                    if (vault.id === '1') {
-                        try {
-                            const lagoonVault = await Vault.fetch({
-                                address: vault.address,
-                                chainId: 1, // Ethereum mainnet
-                            });
-                            
-                            const tvl = parseFloat(formatUnits(lagoonVault.totalAssets, 18));
-                            const exchangeRate = parseFloat(formatUnits(lagoonVault.convertToAssets(BigInt('1000000000000000000')), 18));
-                            const apr = lagoonVault.apr || vault.apy;
-                            
-                            return { 
-                                vaultId: vault.id, 
-                                data: { 
-                                    apy: apr, 
-                                    tvl, 
-                                    exchangeRate 
-                                } 
-                            };
-                        } catch (lagoonError) {
-                            console.error(`Lagoon SDK fetch failed for vault ${vault.id}, falling back to ethers:`, lagoonError);
-                            // Fall through to ethers.js fallback
-                        }
-                    }
+
 
                     const vaultContract = new ethers.Contract(vault.address, STABLE_VAULT_ABI, publicProvider);
                     // Fetch total assets and current exchange rate (assets per 1 share)
@@ -132,31 +107,37 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                     const tvl = parseFloat(formatUnits(totalAssetsBigInt, 18));
                     const exchangeRate = parseFloat(formatUnits(exchangeRateBigInt, 18));
                     
-                    // APY Calculation Mechanism:
-                    // We calculate annualized growth from the initial launch price.
-                    // If the price hasn't moved (1:1) or shows a temporary dip (common due to entry fees),
-                    // we fallback to the strategy's target APY from constants to provide a more accurate
-                    // representation of expected yield.
-                    const inceptionDate = vault.performance && vault.performance.length > 0 
-                        ? new Date(vault.performance[0].date) 
-                        : new Date('2024-05-01');
+                    // For XAU.s, use the configured APY since it's a stable strategy
+                    // For other vaults, calculate APY from price growth
+                    let calculatedApy = vault.apy;
                     
-                    const now = new Date();
-                    const diffTime = Math.abs(now.getTime() - inceptionDate.getTime());
-                    const daysElapsed = Math.max(1, diffTime / (1000 * 60 * 60 * 24));
-                    const yearsElapsed = daysElapsed / 365;
-                    
-                    const initialPrice = vault.performance && vault.performance.length > 0 
-                        ? vault.performance[0].price 
-                        : 1.0;
+                    if (vault.id !== '1') {
+                        // APY Calculation Mechanism for non-XAU.s vaults:
+                        // We calculate annualized growth from the initial launch price.
+                        // If the price hasn't moved (1:1) or shows a temporary dip (common due to entry fees),
+                        // we fallback to the strategy's target APY from constants to provide a more accurate
+                        // representation of expected yield.
+                        const inceptionDate = vault.performance && vault.performance.length > 0 
+                            ? new Date(vault.performance[0].date) 
+                            : new Date('2024-05-01');
+                        
+                        const now = new Date();
+                        const diffTime = Math.abs(now.getTime() - inceptionDate.getTime());
+                        const daysElapsed = Math.max(1, diffTime / (1000 * 60 * 60 * 24));
+                        const yearsElapsed = daysElapsed / 365;
+                        
+                        const initialPrice = vault.performance && vault.performance.length > 0 
+                            ? vault.performance[0].price 
+                            : 1.0;
 
-                    const growth = (exchangeRate / initialPrice) - 1;
-                    
-                    // Only use the live calculation if growth is positive and meaningful (>0.01%)
-                    // Otherwise, fallback to the target APY defined for the strategy.
-                    const calculatedApy = growth > 0.0001 
-                        ? (growth / yearsElapsed) * 100 
-                        : vault.apy;
+                        const growth = (exchangeRate / initialPrice) - 1;
+                        
+                        // Only use the live calculation if growth is positive and meaningful (>0.01%)
+                        // Otherwise, fallback to the target APY defined for the strategy.
+                        calculatedApy = growth > 0.0001 
+                            ? (growth / yearsElapsed) * 100 
+                            : vault.apy;
+                    }
                     
                     return { 
                         vaultId: vault.id, 
