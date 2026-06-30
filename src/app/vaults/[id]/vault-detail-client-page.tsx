@@ -105,9 +105,10 @@ export default function VaultDetailClientPage({ vault }: { vault: Vault }) {
   const withdrawTokenSymbol = 'XAUT';
   const withdrawBalance = userBalanceInVault.toFixed(4);
   
-  const exchangeRate = (userDeposit.receiptTokenAmount ?? 0) > 0 ? (userDeposit.xautAmount ?? 0) / (userDeposit.receiptTokenAmount ?? 1) : 1;
-  const exchangeRateInfo = `1 ${vault.receiptTokenSymbol} ≈ ${exchangeRate.toFixed(4)} XAUT`;
-  const inverseExchangeRateInfo = `1 XAUT ≈ ${(1 / exchangeRate).toFixed(4)} ${vault.receiptTokenSymbol}`;
+  // Use live exchange rate from vault data, fallback to user's historical rate
+  const liveExchangeRate = liveVaultData?.exchangeRate ?? vault.exchangeRate ?? 1;
+  const exchangeRateInfo = `1 ${vault.receiptTokenSymbol} ≈ ${liveExchangeRate.toFixed(4)} XAUT`;
+  const inverseExchangeRateInfo = `1 XAUT ≈ ${(1 / liveExchangeRate).toFixed(4)} ${vault.receiptTokenSymbol}`;
 
 
   return (
