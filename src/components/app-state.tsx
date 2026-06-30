@@ -6,6 +6,7 @@ import { VAULTS } from '@/lib/constants';
 import { BrowserProvider, ethers, formatUnits, parseUnits, WebSocketProvider, TransactionReceipt } from 'ethers';
 import { XAUT_CONTRACT_ADDRESS, XAUT_ABI } from '@/lib/contracts';
 import { STABLE_VAULT_ABI } from '@/lib/contracts/stable-vault';
+import { fetchXAUsVaultMetrics } from '@/lib/lagoon-direct';
 
 declare global {
   interface Window {
@@ -102,7 +103,32 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                         };
                     }
 
-                    // Use configured vault data - real contract data is not reliable for vaults with minimal assets
+                    // For XAU.s (vault id === '1'), fetch real-time metrics from blockchain
+                    if (vault.id === '1') {
+                        try {
+                            const metrics = await fetchXAUsVaultMetrics(vault.address);
+                            if (metrics) {
+                                console.log(`[v0] XAU.s real-time metrics:`, {
+                                    tvl: metrics.tvl,
+                                    sharePrice: metrics.sharePrice,
+                                    apr: metrics.apr,
+                                });
+                                
+                                return {
+                                    vaultId: vault.id,
+                                    data: {
+                                        apy: metrics.apr, // Use real APR from Lagoon
+                                        tvl: metrics.tvl,
+                                        exchangeRate: metrics.sharePrice
+                                    }
+                                };
+                            }
+                        } catch (xausError) {
+                            console.error('[v0] Failed to fetch XAU.s metrics:', xausError);
+                        }
+                    }
+
+                    // Fallback to configured vault data
                     const latestPrice = vault.performance && vault.performance.length > 0 
                         ? vault.performance[vault.performance.length - 1].price 
                         : vault.exchangeRate;
