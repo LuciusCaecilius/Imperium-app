@@ -95,10 +95,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                         return { vaultId: vault.id, data: { apy: vault.apy, tvl: 0, exchangeRate: latestPrice } };
                     }
 
-                    // For XAU.s (vault id === '1'), fetch real-time data from dedicated API
+                    // For XAU.s (vault id === '1'), fetch 100% real-time data from Lagoon API
                     if (vault.id === '1' && vault.isLagoonVault) {
                         try {
-                            const response = await fetch('/api/vault/xaus?bust=' + Date.now(), {
+                            // Include historical data for real-time optimized chart
+                            const response = await fetch('/api/vault/xaus?history=true&bust=' + Date.now(), {
                                 cache: 'no-store',
                             });
                             
@@ -106,11 +107,21 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                                 const apiData = await response.json();
                                 if (apiData.success && apiData.data) {
                                     const { tvl, pricePerShare, apr } = apiData.data;
-                                    console.log('[v0] XAU.s REAL-TIME metrics from blockchain:', { 
+                                    
+                                    console.log('[v0] XAU.s real-time metrics from Lagoon:', { 
                                         tvl, 
                                         pricePerShare, 
-                                        apr 
+                                        apr,
+                                        historicalPrices: apiData.historical?.length || 0
                                     });
+                                    
+                                    // Update vault performance with real-time historical data
+                                    if (apiData.historical && apiData.historical.length > 0) {
+                                        vault.performance = apiData.historical.map((h: any) => ({
+                                            date: h.date,
+                                            price: h.price
+                                        }));
+                                    }
                                     
                                     return {
                                         vaultId: vault.id,
@@ -123,8 +134,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                                 }
                             }
                         } catch (lagoonError) {
-                            console.error('[v0] XAU.s API fetch failed:', lagoonError);
-                            // Fall through to on-chain fallback below
+                            console.error('[v0] XAU.s Lagoon API fetch failed:', lagoonError);
+                            // Fall through to fallback below
                         }
                     }
 
