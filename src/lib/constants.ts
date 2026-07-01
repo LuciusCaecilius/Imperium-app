@@ -9,12 +9,12 @@ export const VAULTS: Vault[] = [
     iconHint: 'weighing scale balance',
     shortDescription: 'Stablecoin yield',
     description: "The vault employs a sophisticated yield-generating strategy by using the deposited XAUT as collateral to borrow stablecoins. These stablecoins are then strategically deployed across various DeFi protocols to generate yield. Profits are then auto-compounded back into XAU.s.",
-    apy: 0, // Fetched real-time from Lagoon API
-    tvl: 0, // Fetched real-time from Lagoon API
-    address: '0x0963b1174A14D5C5A72257406D803C5B470CC00F',
+    apy: 0, // REAL-TIME from Lagoon
+    tvl: 0, // REAL-TIME from Lagoon
+    address: '0x0963b1174a14d5c5a72257406d803c5b470cc00f',
     receiptTokenSymbol: 'XAU.s',
-    exchangeRate: 1.0, // Fetched real-time from Lagoon API
-    performance: [], // Fetched real-time from Lagoon API historical data
+    exchangeRate: 1.0, // REAL-TIME from Lagoon
+    performance: [], // REAL-TIME from Lagoon
     isLagoonVault: true,
   },
   {
