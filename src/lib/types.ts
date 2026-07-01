@@ -14,6 +14,7 @@ export interface Vault {
   receiptTokenSymbol: string;
   exchangeRate: number; // 1 XAUT to X receipt tokens
   performance?: { date: string; price: number }[];
+  isLagoonVault?: boolean; // Real Lagoon Finance vault with live data
 }
 
 export interface Transaction {

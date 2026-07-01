@@ -95,8 +95,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                         return { vaultId: vault.id, data: { apy: vault.apy, tvl: 0, exchangeRate: latestPrice } };
                     }
 
-                    // For XAU.s (vault id === '1'), fetch real-time data from Lagoon API
-                    if (vault.id === '1') {
+                    // For XAU.s (vault id === '1'), fetch real-time data from dedicated API
+                    if (vault.id === '1' && vault.isLagoonVault) {
                         try {
                             const response = await fetch('/api/vault/xaus?bust=' + Date.now(), {
                                 cache: 'no-store',
@@ -106,12 +106,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                                 const apiData = await response.json();
                                 if (apiData.success && apiData.data) {
                                     const { tvl, pricePerShare, apr } = apiData.data;
-                                    console.log('[v0] XAU.s real-time data from Lagoon:', { tvl, pricePerShare, apr });
+                                    console.log('[v0] XAU.s REAL-TIME metrics from blockchain:', { 
+                                        tvl, 
+                                        pricePerShare, 
+                                        apr 
+                                    });
                                     
                                     return {
                                         vaultId: vault.id,
                                         data: {
-                                            apy: apr || vault.apy,
+                                            apy: apr,
                                             tvl: tvl,
                                             exchangeRate: pricePerShare
                                         }
@@ -119,7 +123,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                                 }
                             }
                         } catch (lagoonError) {
-                            console.warn('[v0] Lagoon API error for XAU.s, falling back to on-chain:', lagoonError);
+                            console.error('[v0] XAU.s API fetch failed:', lagoonError);
+                            // Fall through to on-chain fallback below
                         }
                     }
 
