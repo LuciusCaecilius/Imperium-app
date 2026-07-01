@@ -95,6 +95,35 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                         return { vaultId: vault.id, data: { apy: vault.apy, tvl: 0, exchangeRate: latestPrice } };
                     }
 
+                    // For XAU.s (vault id === '1'), fetch real-time data from Lagoon API
+                    if (vault.id === '1') {
+                        try {
+                            const response = await fetch('/api/vault/xaus?bust=' + Date.now(), {
+                                cache: 'no-store',
+                            });
+                            
+                            if (response.ok) {
+                                const apiData = await response.json();
+                                if (apiData.success && apiData.data) {
+                                    const { tvl, pricePerShare, apr } = apiData.data;
+                                    console.log('[v0] XAU.s real-time data from Lagoon:', { tvl, pricePerShare, apr });
+                                    
+                                    return {
+                                        vaultId: vault.id,
+                                        data: {
+                                            apy: apr || vault.apy,
+                                            tvl: tvl,
+                                            exchangeRate: pricePerShare
+                                        }
+                                    };
+                                }
+                            }
+                        } catch (lagoonError) {
+                            console.warn('[v0] Lagoon API error for XAU.s, falling back to on-chain:', lagoonError);
+                        }
+                    }
+
+                    // Fallback to on-chain data for all vaults
                     const vaultContract = new ethers.Contract(vault.address, STABLE_VAULT_ABI, publicProvider);
                     // Fetch total assets and current exchange rate (assets per 1 share)
                     const [totalAssetsBigInt, exchangeRateBigInt] = await Promise.all([
