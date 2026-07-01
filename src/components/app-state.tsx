@@ -106,12 +106,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                             if (response.ok) {
                                 const apiData = await response.json();
                                 if (apiData.success && apiData.data) {
-                                    const { tvl, pricePerShare, apr } = apiData.data;
+                                    const { tvl, exchangeRate, apr } = apiData.data;
                                     
                                     console.log('[v0] XAU.s real-time metrics from Lagoon:', { 
                                         tvl, 
-                                        pricePerShare, 
-                                        apr,
+                                        exchangeRate: exchangeRate.toFixed(4),
+                                        apr: apr.toFixed(2),
                                         historicalPrices: apiData.historical?.length || 0
                                     });
                                     
@@ -128,7 +128,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                                         data: {
                                             apy: apr,
                                             tvl: tvl,
-                                            exchangeRate: pricePerShare
+                                            exchangeRate: exchangeRate
                                         }
                                     };
                                 }
