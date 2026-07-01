@@ -26,15 +26,30 @@ export async function GET(request: Request) {
       );
     }
 
+    // Serialize metrics with proper precision to avoid scientific notation
+    const serializedData = {
+      tvl: parseFloat(metrics.tvl.toFixed(8)),
+      sharePrice: parseFloat(metrics.sharePrice.toFixed(8)),
+      totalSupply: parseFloat(metrics.totalSupply.toFixed(8)),
+      apr: parseFloat(metrics.apr.toFixed(6)),
+      totalAssetsUsd: parseFloat(metrics.totalAssetsUsd.toFixed(2)),
+      timestamp: metrics.timestamp,
+    };
+
     const responseData: any = {
       success: true,
-      data: metrics,
+      data: serializedData,
     };
 
     // Optionally include historical data for real-time optimized chart
     if (includeHistory) {
       const historical = await fetchVaultHistoricalPrices(XAUS_ADDRESS);
-      responseData.historical = historical;
+      responseData.historical = historical.map((h: any) => ({
+        date: h.date,
+        price: parseFloat(h.price.toFixed(8)),
+        timestamp: h.timestamp,
+        tvl: h.tvl ? parseFloat(h.tvl.toFixed(8)) : undefined,
+      }));
     }
 
     // Return with cache headers - 5 second cache for real-time updates
