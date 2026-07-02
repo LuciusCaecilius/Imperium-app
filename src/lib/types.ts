@@ -44,4 +44,5 @@ export interface LiveVaultData {
     apy: number;
     tvl: number;
     exchangeRate: number;
+    sharePrice?: number;
 }

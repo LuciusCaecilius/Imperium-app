@@ -14,6 +14,21 @@ export default function PerformanceChartCard({ vault }: { vault: Vault }) {
   const liveData = liveVaultData[vault.id];
 
   const chartData = React.useMemo(() => {
+    // For Lagoon vaults, always use live share price data
+    if (vault.isLagoonVault && liveData) {
+      const today = new Date().toISOString().split('T')[0];
+      // Use sharePrice if available (in Wei), otherwise use exchangeRate as fallback
+      const currentPrice = liveData.sharePrice ?? liveData.exchangeRate;
+      
+      if (typeof currentPrice === 'number' && currentPrice > 0) {
+        return [{
+          date: today,
+          price: currentPrice,
+        }];
+      }
+    }
+
+    // For non-Lagoon vaults, use historical performance data with real-time update
     const historicalData = (vault.performance || []).map(d => ({
         date: d.date,
         price: d.price
@@ -29,7 +44,7 @@ export default function PerformanceChartCard({ vault }: { vault: Vault }) {
     }
     
     return historicalData;
-  }, [vault.performance, liveData]);
+  }, [vault.performance, vault.isLagoonVault, liveData]);
 
 
   return (

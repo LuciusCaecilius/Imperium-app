@@ -7,22 +7,15 @@ export const VAULTS: Vault[] = [
     name: 'XAU.s',
     icon: 'Scale',
     iconHint: 'weighing scale balance',
-    shortDescription: 'Low-risk stablecoin yield - Lagoon Finance.',
-    description: "The vault employs a sophisticated yield-generating strategy by using the deposited XAUT as collateral to borrow stablecoins. These stablecoins are then strategically deployed across various DeFi protocols to generate yield. Profits are then auto-compounded back into XAU.s. Real-time data from Lagoon Finance.",
-    apy: 0, // Will be fetched from Lagoon
-    tvl: 0, // Will be fetched from blockchain
+    shortDescription: 'Stablecoin yield',
+    description: "The vault employs a sophisticated yield-generating strategy by using the deposited XAUT as collateral to borrow stablecoins. These stablecoins are then strategically deployed across various DeFi protocols to generate yield. Profits are then auto-compounded back into XAU.s.",
+    apy: 0,
+    tvl: 0,
     address: '0x0963b1174A14D5C5A72257406D803C5B470CC00F',
     receiptTokenSymbol: 'XAU.s',
-    exchangeRate: 1.0, // Will be fetched from blockchain
-    performance: [
-      { date: '2024-05-01', price: 1.0000 },
-      { date: '2024-05-08', price: 1.0025 },
-      { date: '2024-05-15', price: 1.0052 },
-      { date: '2024-05-22', price: 1.0081 },
-      { date: '2024-05-29', price: 1.0112 },
-      { date: '2024-06-05', price: 1.0150 },
-    ],
-    isLagoonVault: true, // Flag for real Lagoon integration
+    exchangeRate: 0,
+    performance: [],
+    isLagoonVault: true,
   },
   {
     id: '2',
