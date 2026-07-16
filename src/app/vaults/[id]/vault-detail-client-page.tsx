@@ -1,6 +1,5 @@
 
 'use client';
-import Image from 'next/image';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -105,10 +104,18 @@ export default function VaultDetailClientPage({ vault }: { vault: Vault }) {
   const withdrawTokenSymbol = 'XAUT';
   const withdrawBalance = userBalanceInVault.toFixed(4);
   
-  // Use live exchange rate from vault data, fallback to user's historical rate
-  const liveExchangeRate = liveVaultData?.exchangeRate ?? vault.exchangeRate ?? 1;
-  const exchangeRateInfo = `1 ${vault.receiptTokenSymbol} ≈ ${liveExchangeRate.toFixed(4)} XAUT`;
-  const inverseExchangeRateInfo = `1 XAUT ≈ ${(1 / liveExchangeRate).toFixed(4)} ${vault.receiptTokenSymbol}`;
+  // Use live exchange rate from vault data, fallback to configured rate
+  const vaultLiveData = liveVaultData[vault.id];
+  const liveExchangeRate = (vaultLiveData?.exchangeRate ?? vault.exchangeRate ?? 1);
+  
+  // Validate exchange rate is not zero/infinite
+  const isValidRate = liveExchangeRate && liveExchangeRate > 0 && isFinite(liveExchangeRate);
+  const exchangeRateInfo = isValidRate 
+    ? `1 ${vault.receiptTokenSymbol} ≈ ${liveExchangeRate.toFixed(6)} XAUT`
+    : 'Loading...';
+  const inverseExchangeRateInfo = isValidRate
+    ? `1 XAUT ≈ ${(1 / liveExchangeRate).toFixed(6)} ${vault.receiptTokenSymbol}`
+    : 'Loading...';
 
 
   return (
